@@ -9,7 +9,7 @@
 -module(frequency).
 
 %% API
--export([start/0, stop/0, deallocate/1]).
+-export([start/0, stop/0, allocate/0,  deallocate/1]).
 -export([init/0]).
 
 %%%===================================================================
@@ -55,7 +55,7 @@ reply(Pid, Message) ->
 loop(Frequencies) ->
     receive
         {request, Pid, allocate} ->
-            {NewFrequencies, Reply} = allocate(Frequencies, Pid},
+            {NewFrequencies, Reply} = allocate(Frequencies, Pid),
             reply(Pid, Reply),
             loop(NewFrequencies);
         {request, Pid, {deallocate, Freq}} ->
@@ -70,11 +70,11 @@ loop(Frequencies) ->
     end.
 
 allocate({[], Allocated}, _Pid) ->
-    {{[], Allocated}, [error, no_frequencies}};
+    {{[], Allocated}, [error, no_frequencies]};
 
 allocate({[Freq|Frequencies], Allocated}, Pid) ->
     link(Pid),
-    {{Requencies, [{Freq, Pid}|Allocated]}, {ok, Freq}}.
+    {{Frequencies, [{Freq, Pid}|Allocated]}, {ok, Freq}}.
 
 deallocate({Free, Allocated}, Freq) ->
     {value, {Freq, Pid}} = lists:keysearch(Freq, 1, Allocated),
