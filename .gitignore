@@ -72,3 +72,7 @@ rel/example_project
 .rebar
 
 
+# erlang dets
+chapter10/food
+chapter10/UsrTabFile
+
