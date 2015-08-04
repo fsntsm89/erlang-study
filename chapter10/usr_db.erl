@@ -11,7 +11,8 @@
 
 %% API
 -export([create_tables/1, close_tables/0, add_usr/1, update_usr/1,
-         lookup_id/1, lookup_msisdn/1, restore_backup/0]).
+         delete_usr/1, lookup_id/1, lookup_msisdn/1, restore_backup/0,
+         delete_disabled/0]).
 
 %%%===================================================================
 %%% API
@@ -34,6 +35,20 @@ add_usr(#usr{msisdn=PhoneNo, id=CustId} = Usr) ->
 update_usr(Usr) ->
     ets:insert(usrRam, Usr),
     dets:insert(usrDisk, Usr),
+    ok.
+
+delete_usr(CustId) ->
+    case get_index(CustId) of
+        {ok, PhoneNo} ->
+            delete_usr(PhoneNo, CustId);
+        {error, instance} ->
+            {error, instance}
+    end.
+
+delete_usr(PhoneNo, CustId) ->
+    dets:delete(usrDisk, PhoneNo),
+    ets:delete(usrRam, PhoneNo),
+    ets:delete(usrIndex, CustId),
     ok.
 
 lookup_id(CustId) ->
@@ -70,3 +85,14 @@ get_index(CustId) ->
         [{CustId, PhoneNo}] -> {ok, PhoneNo};
         [] -> {error, instance}
     end.
+
+loop_delete_disabled('$end_of_table') ->
+    ok;
+loop_delete_disabled(PhoneNo) ->
+    case ets:lookup(usrRam, PhoneNo) of
+        [#usr{status=disabled, id = CustId}] ->
+            delete_usr(PhoneNo, CustId);
+        _ ->
+            ok
+    end,
+    loop_delete_disabled(ets:next(usrRam, PhoneNo)).
