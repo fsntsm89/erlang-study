@@ -76,3 +76,7 @@ rel/example_project
 chapter10/food
 chapter10/UsrTabFile
 chapter10/usrDb
+
+chapter12/usrDb
+chapter12/usr.boot
+chapter12/usr.script
